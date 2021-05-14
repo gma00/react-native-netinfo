@@ -1,4 +1,4 @@
-/**
+```/**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
@@ -20,6 +20,12 @@
 #import <React/RCTAssert.h>
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
+
+#ifdef INFO_EXCLUDE_DETAILS
+#define INFO_EXCLUDE_DETAILS
+#else
+#define INFO_EXCLUDE_DETAILS 0
+#endif
 
 @interface RNCNetInfo () <RNCConnectionStateWatcherDelegate>
 
@@ -102,8 +108,15 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
 - (NSDictionary *)currentDictionaryFromUpdateState:(RNCConnectionState *)state withInterface:(nullable NSString *)requestedInterface
 {
   NSString *selectedInterface = requestedInterface ?: state.type;
-  NSMutableDictionary *details = [self detailsFromInterface:selectedInterface withState:state];
   bool connected = [state.type isEqualToString:selectedInterface] && state.connected;
+  
+#if INFO_EXCLUDE_DETAILS
+  return @{
+    @"type": selectedInterface,
+    @"isConnected": @(connected)
+  }
+#else
+  NSMutableDictionary *details = [self detailsFromInterface:selectedInterface withState:state];
   if (connected) {
     details[@"isConnectionExpensive"] = @(state.expensive);
   }
@@ -113,8 +126,10 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
     @"isConnected": @(connected),
     @"details": details ?: NSNull.null
   };
+#endif
 }
 
+#if !INFO_EXCLUDE_DETAILS
 - (NSMutableDictionary *)detailsFromInterface:(nonnull NSString *)requestedInterface withState:(RNCConnectionState *)state
 {
   NSMutableDictionary *details = [NSMutableDictionary new];
@@ -131,10 +146,11 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
   }
   return details;
 }
+#endif
 
 - (NSString *)carrier
 {
-#if (TARGET_OS_TV || TARGET_OS_OSX)
+#if (TARGET_OS_TV || TARGET_OS_OSX || INFO_EXCLUDE_DETAILS)
   return nil;
 #else
   CTTelephonyNetworkInfo *netinfo = [[CTTelephonyNetworkInfo alloc] init];
@@ -143,6 +159,8 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
 #endif
 }
 
+
+#if !INFO_EXCLUDE_DETAILS
 - (NSString *)ipAddress
 {
   NSString *address = @"0.0.0.0";
@@ -214,8 +232,9 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
   freeifaddrs(interfaces);
   return subnet;
 }
+#endif
 
-#if !TARGET_OS_TV && !TARGET_OS_OSX
+#if !TARGET_OS_TV && !TARGET_OS_OSX && !INFO_EXCLUDE_DETAILS
 - (NSString *)ssid
 {
   NSArray *interfaceNames = CFBridgingRelease(CNCopySupportedInterfaces());
@@ -252,3 +271,4 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
 #endif
 
 @end
+```
