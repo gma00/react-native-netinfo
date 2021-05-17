@@ -21,9 +21,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
 
-#ifdef INFO_EXCLUDE_DETAILS
-#define INFO_EXCLUDE_DETAILS
-#else
+#ifdef !INFO_EXCLUDE_DETAILS
 #define INFO_EXCLUDE_DETAILS 0
 #endif
 
