@@ -112,7 +112,7 @@ RCT_EXPORT_METHOD(getCurrentState:(nullable NSString *)requestedInterface resolv
   return @{
     @"type": selectedInterface,
     @"isConnected": @(connected)
-  }
+  };
 #else
   NSMutableDictionary *details = [self detailsFromInterface:selectedInterface withState:state];
   if (connected) {
